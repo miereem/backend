@@ -180,7 +180,7 @@ public class HumanBeingService {
 
     public void assignCarToHeroesWithoutCar() {
         List<HumanBeing> heroesWithoutCar = humanBeingRepository.findAll().stream()
-                .filter(hb -> hb.getCar() == null)
+                .filter(hb -> hb.getCar().getName() == null)
                 .collect(Collectors.toList());
 
         for (HumanBeing humanBeing : heroesWithoutCar) {

@@ -3,6 +3,7 @@ package org.example.controller;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.example.model.WeaponType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import lombok.RequiredArgsConstructor;
@@ -21,9 +22,9 @@ import java.util.Optional;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/human-beings")
-@CrossOrigin(origins = "http://localhost:3000,http://localhost:3001",
+@CrossOrigin(origins = "*",
         allowedHeaders = "*",
-        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS})
+        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PATCH})
 public class HumanBeingController {
 
     private static final Log log = LogFactory.getLog(HumanBeingController.class);
@@ -85,6 +86,45 @@ public Map<String, Object> listHumanBeings(
     @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<Void> deleteHumanBeing(@PathVariable Long id) {
         humanBeingService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/weapon-type/{weaponType}/all")
+    public ResponseEntity<Void> deleteAllByWeaponType(@PathVariable String weaponType) {
+        WeaponType type = WeaponType.fromString(weaponType);
+        if (type == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        humanBeingService.deleteAllByWeaponType(type);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/weapon-type/{weaponType}/one")
+    public ResponseEntity<Void> deleteOneByWeaponType(@PathVariable String weaponType) {
+        WeaponType type = WeaponType.fromString(weaponType);
+        if (type == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        humanBeingService.deleteOneByWeaponType(type);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/group/soundtrack")
+    public ResponseEntity<Map<String, Long>> groupBySoundtrackName() {
+        Map<String, Long> grouped = humanBeingService.groupBySoundtrackName();
+        return ResponseEntity.ok(grouped);
+    }
+
+    @PatchMapping("/mood/sadness")
+    public ResponseEntity<Void> updateAllMoodToSadness() {
+        humanBeingService.updateAllMoodToSadness();
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/car/assign")
+    public ResponseEntity<Void> assignCarToHeroesWithoutCar() {
+        humanBeingService.assignCarToHeroesWithoutCar();
         return ResponseEntity.noContent().build();
     }
 
