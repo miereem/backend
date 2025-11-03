@@ -1,205 +1,185 @@
 package org.example.service;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.example.model.*;
+import org.example.repository.*;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.example.dto.HumanBeingDto;
-import org.example.model.Car;
-import org.example.model.HumanBeing;
-import org.example.model.Mood;
-import org.example.model.WeaponType;
-import org.example.repository.HumanBeingRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class HumanBeingService {
 
     private final HumanBeingRepository humanBeingRepository;
-    private static final Logger log = LoggerFactory.getLogger(HumanBeingService.class);
+    private final CoordinatesRepository coordinatesRepository;
+    private final CarRepository carRepository;
+    private final WebSocketNotificationService notificationService;
 
-
-    public HumanBeing create(HumanBeingDto humanBeingDto) {
-        // 1) Логируем DTO, пришедший с фронтенда
-        log.info("=== Frontend DTO ===");
-        log.info("ID: {}", humanBeingDto.getId());
-        log.info("Name: {}", humanBeingDto.getName());
-        log.info("Coordinates: x={}, y={}",
-                humanBeingDto.getCoordinates() != null ? humanBeingDto.getCoordinates().getX() : null,
-                humanBeingDto.getCoordinates() != null ? humanBeingDto.getCoordinates().getY() : null);
-        log.info("RealHero: {}", humanBeingDto.isRealHero());
-        log.info("HasToothpick: {}", humanBeingDto.getHasToothpick());
-        log.info("Car: name={}, cool={}",
-                humanBeingDto.getCar() != null ? humanBeingDto.getCar().getName() : null,
-                humanBeingDto.getCar() != null ? humanBeingDto.getCar().getCool() : null);
-        log.info("Mood: {}", humanBeingDto.getMood());
-        log.info("ImpactSpeed: {}", humanBeingDto.getImpactSpeed());
-        log.info("SoundtrackName: {}", humanBeingDto.getSoundtrackName());
-        log.info("WeaponType: {}", humanBeingDto.getWeaponType());
-
-        // 2) Конвертация DTO в сущность
-        HumanBeing humanBeing = HumanBeingDto.convertFromDto(humanBeingDto);
-
-        // 3) Логируем сущность перед сохранением
-        log.info("=== Converted Entity ===");
-        log.info("ID: {}", humanBeing.getId());
-        log.info("Name: {}", humanBeing.getName());
-        log.info("Coordinates: x={}, y={}",
-                humanBeing.getCoordinates() != null ? humanBeing.getCoordinates().getX() : null,
-                humanBeing.getCoordinates() != null ? humanBeing.getCoordinates().getY() : null);
-        log.info("RealHero: {}", humanBeing.isRealHero());
-        log.info("HasToothpick: {}", humanBeing.getHasToothpick());
-        log.info("Car: name={}, cool={}",
-                humanBeing.getCar() != null ? humanBeing.getCar().getName() : null,
-                humanBeing.getCar() != null ? humanBeing.getCar().getCool() : null);
-        log.info("Mood: {}", humanBeing.getMood());
-        log.info("ImpactSpeed: {}", humanBeing.getImpactSpeed());
-        log.info("SoundtrackName: {}", humanBeing.getSoundtrackName());
-        log.info("WeaponType: {}", humanBeing.getWeaponType());
-
-        // 4) Сохраняем в базу
-        return humanBeingRepository.save(humanBeing);
-    }
-
-    public HumanBeing updateById(Long id, HumanBeingDto humanBeingDto) {
-        HumanBeing humanBeing = humanBeingRepository.findById(id).
-                orElseThrow(() -> new IllegalArgumentException("HumanBeing with id \" + id + \" not found")
-        );
-
-        // 1) Логируем DTO, пришедший с фронтенда
-        log.info("=== Frontend DTO ===");
-        log.info("ID: {}", humanBeingDto.getId());
-        log.info("Name: {}", humanBeingDto.getName());
-        log.info("Coordinates: x={}, y={}",
-                humanBeingDto.getCoordinates() != null ? humanBeingDto.getCoordinates().getX() : null,
-                humanBeingDto.getCoordinates() != null ? humanBeingDto.getCoordinates().getY() : null);
-        log.info("RealHero: {}", humanBeingDto.isRealHero());
-        log.info("HasToothpick: {}", humanBeingDto.getHasToothpick());
-        log.info("Car: name={}, cool={}",
-                humanBeingDto.getCar() != null ? humanBeingDto.getCar().getName() : null,
-                humanBeingDto.getCar() != null ? humanBeingDto.getCar().getCool() : null);
-        log.info("Mood: {}", humanBeingDto.getMood());
-        log.info("ImpactSpeed: {}", humanBeingDto.getImpactSpeed());
-        log.info("SoundtrackName: {}", humanBeingDto.getSoundtrackName());
-        log.info("WeaponType: {}", humanBeingDto.getWeaponType());
-
-
-
-        humanBeing.setName(humanBeingDto.getName());
-        humanBeing.setCoordinates(humanBeingDto.getCoordinates());
-        humanBeing.setRealHero(humanBeingDto.isRealHero());
-        humanBeing.setHasToothpick(humanBeingDto.getHasToothpick());
-        humanBeing.setCar(humanBeingDto.getCar());
-        humanBeing.setMood(humanBeingDto.getMood());
-        humanBeing.setImpactSpeed(humanBeingDto.getImpactSpeed());
-        humanBeing.setSoundtrackName(humanBeingDto.getSoundtrackName());
-        humanBeing.setWeaponType(humanBeingDto.getWeaponType());
-
-        // 3) Логируем сущность перед сохранением
-        log.info("=== Converted Entity ===");
-        log.info("ID: {}", humanBeing.getId());
-        log.info("Name: {}", humanBeing.getName());
-        log.info("Coordinates: x={}, y={}",
-                humanBeing.getCoordinates() != null ? humanBeing.getCoordinates().getX() : null,
-                humanBeing.getCoordinates() != null ? humanBeing.getCoordinates().getY() : null);
-        log.info("RealHero: {}", humanBeing.isRealHero());
-        log.info("HasToothpick: {}", humanBeing.getHasToothpick());
-        log.info("Car: name={}, cool={}",
-                humanBeing.getCar() != null ? humanBeing.getCar().getName() : null,
-                humanBeing.getCar() != null ? humanBeing.getCar().getCool() : null);
-        log.info("Mood: {}", humanBeing.getMood());
-        log.info("ImpactSpeed: {}", humanBeing.getImpactSpeed());
-        log.info("SoundtrackName: {}", humanBeing.getSoundtrackName());
-        log.info("WeaponType: {}", humanBeing.getWeaponType());
-        return humanBeingRepository.save(humanBeing);
-    }
-
-    public void delete(Long id) {
-        if (!humanBeingRepository.existsById(id)) {
-            throw new RuntimeException("HumanBeing with id " + id + " not found");
-        }
-        humanBeingRepository.deleteById(id);
-    }
-
-    @Transactional()
-    public Optional<HumanBeing> findById(Long id) {
-        return humanBeingRepository.findById(id);
-    }
-
-    @Transactional()
-    public Page<HumanBeing> findAll(Pageable pageable) {
+    public Page<HumanBeing> getAllHumans(Pageable pageable) {
         return humanBeingRepository.findAll(pageable);
     }
 
-    @Transactional()
-    public List<HumanBeing> searchByName(String name) {
-        return humanBeingRepository.findByNameContainingIgnoreCase(name);
+    public HumanBeing getHumanById(Integer id) {
+        return humanBeingRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("HumanBeing not found with id: " + id));
     }
 
-    @Transactional()
+    @Transactional
+    public HumanBeing createHuman(HumanBeing humanBeing) {
+        if (humanBeing.getCoordinates() != null) {
+            Coordinates savedCoords = coordinatesRepository.save(humanBeing.getCoordinates());
+            humanBeing.setCoordinates(savedCoords);
+        }
+
+        if (humanBeing.getCar() != null) {
+            Car savedCar = carRepository.save(humanBeing.getCar());
+            humanBeing.setCar(savedCar);
+        }
+
+        humanBeing.setCreationDate(LocalDate.now());
+        HumanBeing saved = humanBeingRepository.save(humanBeing);
+
+        // Отправляем уведомление через WebSocket
+        notificationService.notifyHumanBeingCreated(saved);
+
+        return saved;
+    }
+
+    @Transactional
+    public HumanBeing updateHuman(Integer id, HumanBeing humanBeing) {
+        HumanBeing existing = getHumanById(id);
+
+        existing.setName(humanBeing.getName());
+        existing.setRealHero(humanBeing.isRealHero());
+        existing.setHasToothpick(humanBeing.getHasToothpick());
+        existing.setMood(humanBeing.getMood());
+        existing.setImpactSpeed(humanBeing.getImpactSpeed());
+        existing.setSoundtrackName(humanBeing.getSoundtrackName());
+        existing.setWeaponType(humanBeing.getWeaponType());
+
+        if (humanBeing.getCoordinates() != null) {
+            if (existing.getCoordinates() != null) {
+                existing.getCoordinates().setX(humanBeing.getCoordinates().getX());
+                existing.getCoordinates().setY(humanBeing.getCoordinates().getY());
+                coordinatesRepository.save(existing.getCoordinates());
+            } else {
+                Coordinates savedCoords = coordinatesRepository.save(humanBeing.getCoordinates());
+                existing.setCoordinates(savedCoords);
+            }
+        }
+
+        if (humanBeing.getCar() != null) {
+            if (existing.getCar() != null) {
+                existing.getCar().setName(humanBeing.getCar().getName());
+                existing.getCar().setCool(humanBeing.getCar().getCool());
+                carRepository.save(existing.getCar());
+            } else {
+                Car savedCar = carRepository.save(humanBeing.getCar());
+                existing.setCar(savedCar);
+            }
+        }
+
+        HumanBeing updated = humanBeingRepository.save(existing);
+
+        // Отправляем уведомление через WebSocket
+        notificationService.notifyHumanBeingUpdated(updated);
+
+        return updated;
+    }
+
+    @Transactional
+    public void deleteHuman(Integer id) {
+        HumanBeing humanBeing = getHumanById(id);
+        humanBeingRepository.delete(humanBeing);
+
+        // Отправляем уведомление через WebSocket
+        notificationService.notifyHumanBeingDeleted(id);
+    }
+
     public Page<HumanBeing> searchByName(String name, Pageable pageable) {
         return humanBeingRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
-    public void deleteAllByWeaponType(WeaponType weaponType) {
-        humanBeingRepository.deleteAllByWeaponType(weaponType);
+    public Page<HumanBeing> filterBySoundtrackName(String soundtrackName, Pageable pageable) {
+        return humanBeingRepository.findBySoundtrackNameContainingIgnoreCase(soundtrackName, pageable);
     }
 
-    public void deleteOneByWeaponType(WeaponType weaponType) {
-        List<HumanBeing> humanBeings = humanBeingRepository.findByWeaponType(weaponType);
-        if (!humanBeings.isEmpty()) {
-            humanBeingRepository.delete(humanBeings.get(0));
-        }
+    // Специальные операции из ТЗ
+
+    @Transactional
+    public int deleteAllByWeaponType(WeaponType weaponType) {
+        List<HumanBeing> toDelete = humanBeingRepository.findByWeaponType(weaponType);
+        int count = toDelete.size();
+        humanBeingRepository.deleteAll(toDelete);
+
+        // Отправляем уведомления об удалении
+        toDelete.forEach(hb -> notificationService.notifyHumanBeingDeleted(hb.getId()));
+
+        return count;
+    }
+
+    @Transactional
+    public boolean deleteOneByWeaponType(WeaponType weaponType) {
+        return humanBeingRepository.findFirstByWeaponType(weaponType)
+                .map(human -> {
+                    humanBeingRepository.delete(human);
+                    notificationService.notifyHumanBeingDeleted(human.getId());
+                    return true;
+                })
+                .orElse(false);
     }
 
     public Map<String, Long> groupBySoundtrackName() {
-        List<Object[]> results = humanBeingRepository.countBySoundtrackName();
-        return results.stream()
-                .collect(Collectors.toMap(
-                        result -> (String) result[0],
-                        result -> (Long) result[1]
+        List<HumanBeing> allHumans = humanBeingRepository.findAll();
+        return allHumans.stream()
+                .collect(Collectors.groupingBy(
+                        HumanBeing::getSoundtrackName,
+                        Collectors.counting()
                 ));
     }
 
-    public void updateAllMoodToSadness() {
-        List<HumanBeing> allHumanBeings = humanBeingRepository.findAll();
-        for (HumanBeing humanBeing : allHumanBeings) {
-            humanBeing.setMood(Mood.SADNESS);
-        }
-        humanBeingRepository.saveAll(allHumanBeings);
-    }
+    @Transactional
+    public int makeAllHeroesSad() {
+        List<HumanBeing> allHumans = humanBeingRepository.findAll();
+        int count = 0;
 
-    public void assignCarToHeroesWithoutCar() {
-        List<HumanBeing> heroesWithoutCar = humanBeingRepository.findAll().stream()
-                .filter(hb -> hb.getCar().getName() == null)
-                .collect(Collectors.toList());
-
-        for (HumanBeing humanBeing : heroesWithoutCar) {
-            Car redLadaKalina = new Car();
-            redLadaKalina.setName("Lada Kalina");
-            redLadaKalina.setCool(true);
-            humanBeing.setCar(redLadaKalina);
+        for (HumanBeing human : allHumans) {
+            if (human.getMood() != Mood.SADNESS) {
+                human.setMood(Mood.SADNESS);
+                humanBeingRepository.save(human);
+                notificationService.notifyHumanBeingUpdated(human);
+                count++;
+            }
         }
 
-        humanBeingRepository.saveAll(heroesWithoutCar);
+        return count;
     }
 
-    @Transactional()
-    public long count() {
-        return humanBeingRepository.count();
-    }
+    @Transactional
+    public int giveRedLadaKalinaToHeroesWithoutCar() {
+        List<HumanBeing> heroesWithoutCar = humanBeingRepository.findByCarIsNull();
+        int count = 0;
 
-    @Transactional()
-    public boolean existsById(Long id) {
-        return humanBeingRepository.existsById(id);
+        for (HumanBeing human : heroesWithoutCar) {
+            Car ladaKalina = new Car();
+            ladaKalina.setName("Lada Kalina");
+            ladaKalina.setCool(false);
+            Car savedCar = carRepository.save(ladaKalina);
+
+            human.setCar(savedCar);
+            humanBeingRepository.save(human);
+            notificationService.notifyHumanBeingUpdated(human);
+            count++;
+        }
+
+        return count;
     }
 }
