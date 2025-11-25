@@ -1,0 +1,18 @@
+{
+    "humans": [
+      {
+        "name": "John Doe",
+        "coordinates": { "x": 10, "y": 150.5 },
+        "realHero": true,
+        "hasToothpick": false,
+        "impactSpeed": 300.5,
+        "soundtrackName": "Epic Soundtrack",
+        "weaponType": "PISTOL",
+        "mood": "SADNESS",
+        "car": {
+          "name": "Tesla Model S",
+          "cool": true
+        }
+      }
+    ]
+  }

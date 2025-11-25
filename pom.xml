@@ -169,19 +169,6 @@
                 <artifactId>jjwt-jackson</artifactId>
                 <version>0.12.3</version>
             </dependency>
-            <!-- WebSocket для real-time обновлений -->
-            <dependency>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-starter-websocket</artifactId>
-            </dependency>
-
-            <!-- Jackson для YAML поддержки -->
-            <dependency>
-                <groupId>com.fasterxml.jackson.dataformat</groupId>
-                <artifactId>jackson-dataformat-yaml</artifactId>
-            </dependency>
-
-            <!-- SockJS для совместимости с браузерами -->
             <dependency>
                 <groupId>org.webjars</groupId>
                 <artifactId>sockjs-client</artifactId>

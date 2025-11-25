@@ -1,0 +1,51 @@
+{
+  "humans": [
+    {
+      "name": "John Doe",
+      "coordinates": {
+        "x": 10,
+        "y": 150.5
+      },
+      "realHero": true,
+      "hasToothpick": false,
+      "impactSpeed": 300.5,
+      "soundtrackName": "Epic Soundtrack",
+      "weaponType": "PISTOL",
+      "mood": "SADNESS",
+      "car": {
+        "name": "Tesla Model S",
+        "cool": true
+      }
+    },
+    {
+      "name": "Jane Smith",
+      "coordinates": {
+        "x": 5,
+        "y": 200.0
+      },
+      "realHero": false,
+      "hasToothpick": true,
+      "impactSpeed": 450.75,
+      "soundtrackName": "Action Theme",
+      "weaponType": "KNIFE",
+      "mood": "LONGING"
+    },
+    {
+      "name": "Bob Johnson",
+      "coordinates": {
+        "x": 12,
+        "y": 100.25
+      },
+      "realHero": true,
+      "impactSpeed": 550.0,
+      "soundtrackName": "Heroic Music",
+      "weaponType": "MACHINE_GUN",
+      "mood": "GLOOM",
+      "car": {
+        "name": "Ford Mustang",
+        "cool": false
+      }
+    }
+  ]
+}
+

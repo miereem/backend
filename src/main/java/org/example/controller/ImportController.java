@@ -1,9 +1,10 @@
 package org.example.controller;
 
 import org.example.model.ImportHistory;
-import org.example.repository.ImportHistoryRepository;
+import org.example.model.ImportStatus;
 import org.example.service.ImportService;
 import lombok.RequiredArgsConstructor;
+import org.example.repository.ImportHistoryRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -17,6 +18,9 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/api/import")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*",
+        allowedHeaders = "*",
+        methods = { RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS, RequestMethod.PATCH})
 public class ImportController {
 
     private final ImportService importService;
@@ -30,11 +34,36 @@ public class ImportController {
         try {
             String username = authentication.getName();
             ImportHistory history = importService.importFromFile(file, username);
+
+            if (history.getStatus() == ImportStatus.FAILURE) {
+                return ResponseEntity
+                        .status(HttpStatus.BAD_REQUEST)
+                        .body(history);
+            }
+
             return ResponseEntity.ok(history);
-        } catch (Exception e) {
+        } catch (IllegalArgumentException e) {
+            // Ошибки валидации
+            ImportHistory errorHistory = new ImportHistory();
+            errorHistory.setStatus(ImportStatus.FAILURE);
+            errorHistory.setErrorMessage(e.getMessage());
+            errorHistory.setObjectsAdded(0);
+            errorHistory.setUsername(authentication.getName());
+            errorHistory.setFileName(file.getOriginalFilename());
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse(e.getMessage()));
+                    .body(errorHistory);
+        } catch (Exception e) {
+            // Другие ошибки
+            ImportHistory errorHistory = new ImportHistory();
+            errorHistory.setStatus(ImportStatus.FAILURE);
+            errorHistory.setErrorMessage("Ошибка при обработке файла: " + e.getMessage());
+            errorHistory.setObjectsAdded(0);
+            errorHistory.setUsername(authentication.getName());
+            errorHistory.setFileName(file.getOriginalFilename());
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(errorHistory);
         }
     }
 
@@ -68,11 +97,5 @@ public class ImportController {
         }
 
         return ResponseEntity.ok(history);
-    }
-
-    @lombok.Data
-    @lombok.AllArgsConstructor
-    public static class ErrorResponse {
-        private String message;
     }
 }
